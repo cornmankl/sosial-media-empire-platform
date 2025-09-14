@@ -17,11 +17,11 @@
   "routes": [
     {
       "src": "/api/socketio/(.*)",
-      "dest": "/server.ts"
+      "dest": "/vercel-server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/server.ts"
+      "dest": "/vercel-server.js"
     }
   ],
   "env": {
