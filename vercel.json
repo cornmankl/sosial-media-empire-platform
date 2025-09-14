@@ -3,28 +3,7 @@
   "builds": [
     {
       "src": "package.json",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          ".next/**",
-          "public/**",
-          "prisma/**",
-          "db/**"
-        ]
-      }
+      "use": "@vercel/node"
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/socketio/(.*)",
-      "dest": "/vercel-server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/vercel-server.js"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
