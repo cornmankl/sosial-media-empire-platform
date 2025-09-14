@@ -117,11 +117,64 @@ Run the comprehensive system test from the dashboard to verify all components ar
 
 ## Deployment
 
-Build the application for production:
+### Deploying to Vercel (Recommended)
+
+#### Option 1: Deploy from GitHub (via Vercel Dashboard)
+
+1. Visit [vercel.com](https://vercel.com) and sign in or create an account
+2. Click "New Project"
+3. Click "Continue with GitHub" and authorize Vercel to access your GitHub account
+4. Import the `cornmankl/sosial-media-empire-platform` repository
+5. Configure environment variables:
+   - `DATABASE_URL`: `file:./db/custom.db`
+   - `NODE_ENV`: `production`
+6. Click "Deploy"
+
+#### Option 2: Deploy using Vercel CLI
+
+1. Install Vercel CLI globally:
+   ```bash
+   npm install -g vercel
+   ```
+
+2. Run the deployment script:
+   ```bash
+   # On Windows
+   deploy.bat
+   
+   # On macOS/Linux
+   ./deploy.sh
+   ```
+
+### Deploying to Other Platforms
+
+#### Building for Production
 
 ```bash
 npm run build
+```
+
+#### Starting the Production Server
+
+```bash
 npm start
 ```
 
 The application can be deployed to any platform that supports Node.js applications.
+
+### Important Deployment Notes
+
+1. **Database Considerations**:
+   - This project uses SQLite, which works for basic deployments but has limitations
+   - For production use, consider migrating to PostgreSQL or MySQL
+
+2. **Real-time Features**:
+   - Socket.IO is configured for compatibility but may have limitations in serverless environments
+
+3. **Custom Server**:
+   - The application uses a custom server (`server.ts`) with Socket.IO integration
+   - Ensure your deployment platform supports custom servers
+
+## Support
+
+For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
