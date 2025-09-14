@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  avatar       String?
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relationships
+  accounts     SocialAccount[]
+  campaigns    Campaign[]
+  posts        Post[]
+  analytics    Analytics[]
+  aiContent    AiContent[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  CONTENT_CREATOR
+  ANALYST
+}
+
+model SocialPlatform {
+  id          String   @id @default(cuid())
+  name        String   // Facebook, TikTok, Instagram, etc.
+  apiKey      String?
+  apiSecret   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relationships
+  accounts    SocialAccount[]
+  posts       Post[]
+  
+  @@map("social_platforms")
+}
+
+model SocialAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  platformId    String
+  accountId     String   // Platform-specific account ID
+  username      String?
+  displayName   String?
+  accessToken   String?
+  refreshToken  String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relationships
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform      SocialPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  posts         Post[]
+  
+  @@map("social_accounts")
+}
+
+model Campaign {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  userId        String
+  status        CampaignStatus @default(DRAFT)
+  startDate     DateTime?
+  endDate       DateTime?
+  budget        Float?
+  targetAudience Json?   // JSON for complex targeting criteria
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relationships
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts         Post[]
+  analytics     Analytics[]
+  
+  @@map("campaigns")
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+model Post {
+  id            String   @id @default(cuid())
+  title         String?
+  content       String
+  mediaUrl      String?  // URL to image/video
+  mediaType     MediaType? // IMAGE, VIDEO, TEXT
+  platformId    String
+  accountId     String?
+  campaignId    String?
+  userId        String
+  status        PostStatus @default(DRAFT)
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  hashtags      String?  // JSON array of hashtags
+  metadata      Json?    // Additional platform-specific data
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relationships
+  platform      SocialPlatform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  account       SocialAccount? @relation(fields: [accountId], references: [id], onDelete: SetNull)
+  campaign      Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analytics     Analytics[]
+  
+  @@map("posts")
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  FAILED
+  DELETED
+}
+
+enum MediaType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  CAROUSEL
+}
+
+model Analytics {
+  id            String   @id @default(cuid())
+  postId        String?
+  campaignId    String?
+  userId        String
+  platform      String?
+  metricDate    DateTime
+  impressions   Int      @default(0)
+  reach         Int      @default(0)
+  engagement    Int      @default(0)
+  likes         Int      @default(0)
+  comments      Int      @default(0)
+  shares        Int      @default(0)
+  clicks        Int      @default(0)
+  conversions   Int      @default(0)
+  revenue       Float    @default(0)
+  sentiment     Float?   // -1 to 1 scale
+  metadata      Json?    // Additional metrics
+  createdAt     DateTime @default(now())
+  
+  // Relationships
+  post          Post?     @relation(fields: [postId], references: [id], onDelete: SetNull)
+  campaign      Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("analytics")
+}
+
+model AiContent {
+  id            String   @id @default(cuid())
+  userId        String
+  prompt        String
+  content       String
+  contentType   String   // TEXT, IMAGE, VIDEO, etc.
+  platform      String?  // Target platform
+  tone          String?  // Professional, casual, etc.
+  hashtags      String?  // Generated hashtags
+  metadata      Json?    // AI generation details
+  isUsed        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  
+  // Relationships
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("ai_content")
+}
+
+model Competitor {
+  id            String   @id @default(cuid())
+  name          String
+  industry      String?
+  website       String?
+  socialHandles Json?    // Social media handles
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relationships
+  intelligence  CompetitorIntelligence[]
+  
+  @@map("competitors")
+}
+
+model CompetitorIntelligence {
+  id            String   @id @default(cuid())
+  competitorId  String
+  platform      String
+  metricType    String   // FOLLOWERS, ENGAGEMENT, POSTS, etc.
+  value         Float
+  date          DateTime
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  
+  // Relationships
+  competitor    Competitor @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+  
+  @@map("competitor_intelligence")
+}
+
+model Trend {
+  id            String   @id @default(cuid())
+  keyword       String
+  platform      String?
+  category      String?
+  volume        Int?
+  growth        Float?   // Percentage growth
+  sentiment     Float?   // -1 to 1 scale
+  date          DateTime
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  
+  @@map("trends")
+}
